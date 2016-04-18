@@ -9,10 +9,10 @@ else
 endif
 
 CC=gcc
-CFLAGS=-g -O2 -Wall -D_GNU_SOURCE
+CFLAGS=-Wall -D_GNU_SOURCE
 
 CXX=g++
-CXXFLAGS=-g -O2 -Wall -D_GNU_SOURCE
+CXXFLAGS=-Wall -D_GNU_SOURCE
 
 LD=ld
 LDFLAGS=
@@ -46,8 +46,11 @@ SRC=src/$(OUTPUT)
 DEST=bin/$(OUTPUT)
 
 ifeq ($(DEBUG), yes)
-  CFLAGS += -DDEBUG
-  CXXFLAGS += -DDEBUG
+	CFLAGS += -g -ggdb -DDEBUG -O0
+	CXXFLAGS += -g -ggdb -DDEBUG -O0
+else
+	CFLAGS += -O2
+	CXXFLAGS += -O2
 endif
 
 .c.o:
