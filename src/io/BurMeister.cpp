@@ -42,10 +42,15 @@ BurMeister::~BurMeister( ) {
 }
 
 void BurMeister::clean( ) {
-  delete attributesNames;
-  delete objectsNames;
-
   closeFile( );
+
+  for (vector<const char *>::iterator it = attributesNames->begin(); it != attributesNames->end(); it++)
+    delete *it;
+  delete attributesNames;
+
+  for (vector<const char *>::iterator it = objectsNames->begin(); it != objectsNames->end(); it++)
+    delete *it;
+  delete objectsNames;
 
   delete in;
 }
