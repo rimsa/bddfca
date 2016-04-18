@@ -59,14 +59,14 @@ int BurMeister::getObjects( ) {
 }
 
 const char *BurMeister::getAttributeName(unsigned int idx) {
-  if (idx >= 0 && idx < attributesNames->size( ))
+  if (idx < attributesNames->size( ))
     return (*attributesNames)[idx];
   else
     return NULL;
 }
 
 const char *BurMeister::getObjectName(unsigned int idx) {
-  if (idx >= 0 && idx < objectsNames->size( ))
+  if (idx < objectsNames->size( ))
     return (*objectsNames)[idx];
   else
     return NULL;

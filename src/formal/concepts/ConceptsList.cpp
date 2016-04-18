@@ -61,7 +61,7 @@ Concept *ConceptsList::nextConcept( ) {
 Concept *ConceptsList::getConcept(unsigned int pos) {
   Concept *ret = NULL;
 
-  if (pos >= 0 && pos < concepts->size( ))
+  if (pos < concepts->size( ))
     ret = (*concepts)[pos];
 
   return ret;
