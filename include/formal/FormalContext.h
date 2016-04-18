@@ -4,21 +4,23 @@
 #include <io/BurMeister.h>
 #include <util/Object.h>
 
-#if defined BuDDy
+#if defined(BuDDy)
   #include <bdd.h>
-#else defined CUDD
+#elif defined(CUDD)
   #include <cudd.h>
+#else
+  #error "Invalid BDD Library"
 #endif
 
 class FormalContext {
-  private:
+  public:
     int attributes;
     int objects;
     int filled;
 
-#if defined BuDDy
+#if defined(BuDDy)
     bdd context;
-#else CUDD
+#elif defined(CUDD)
     DdManager *ddman;
     DdNode *context;
 
@@ -34,10 +36,10 @@ class FormalContext {
 
     void process(BurMeister *in);
 
-#if defined BuDDy
+#if defined(BuDDy)
     bdd extractAttribute(int idx);
     bdd &extractBDD( );
-#else CUDD
+#elif defined(CUDD)
     DdNode *extractAttribute(int idx);
     DdNode *extractBDD( );
 

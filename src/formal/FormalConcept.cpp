@@ -8,12 +8,18 @@
 
 using namespace std;
 
+#if defined(CUDD)
+extern "C" {
+  int ddCountRoots(DdManager *table, int lower, int upper);
+}
+#endif
+
 FormalConcept::FormalConcept(FormalContext *context) {
   this->attr = context->getAttributes( );
   this->context = context;
   this->concepts = ConceptsKeeper::createInstance( );
 
-#if defined CUDD
+#if defined(CUDD)
   ddman = context->getDdManager( );
 
   zddtrue = Cudd_ReadZddOne(ddman, 0);
@@ -25,9 +31,9 @@ FormalConcept::FormalConcept(FormalContext *context) {
 }
 
 FormalConcept::~FormalConcept( ) {
-#if defined CUDD
-	  Cudd_Deref(zddtrue);
-	  Cudd_Deref(zddfalse);
+#if defined(CUDD)
+	Cudd_Deref(zddtrue);
+	Cudd_Deref(zddfalse);
 #endif
 
   delete concepts;
@@ -40,16 +46,16 @@ void FormalConcept::process( ) {
   int done, last;
   bool verbose;
 
-#if defined BuDDy
+#if defined(BuDDy)
   bdd &ctx = context->extractBDD( );
-#elif defined CUDD
+#elif defined(CUDD)
   DdNode *ctx = context->extractBDD( );
 #endif
 
   Concept *all = this->createConcept(ctx);
   concepts->addConcept(all);
 
-#if defined CUDD
+#if defined(CUDD)
   Cudd_RecursiveDerefZdd(ddman, ctx);
 #endif
 
@@ -58,9 +64,9 @@ void FormalConcept::process( ) {
   verbose = Args::getInstance( )->getVerbose( );
 
   for (i = 0; i < attr; i++) {
-#if defined BuDDy
+#if defined(BuDDy)
     bdd tmp1 = context->extractAttribute(i);
-#elif defined CUDD
+#elif defined(CUDD)
     DdNode *tmp1 = context->extractAttribute(i);
 #endif
 
@@ -68,10 +74,10 @@ void FormalConcept::process( ) {
     for (j = 0; j < size; j++) {
       Concept *cpt = concepts->getConcept(j);
 
-#if defined BuDDy
+#if defined(BuDDy)
       bdd tmp2 = this->assemblyBDD(cpt);
       bdd intersec = tmp1 & tmp2;
-#elif defined CUDD
+#elif defined(CUDD)
       DdNode *tmp2 = this->assemblyBDD(cpt);
       DdNode *intersec = Cudd_zddIntersect(ddman, tmp1, tmp2);
 
@@ -85,7 +91,7 @@ void FormalConcept::process( ) {
       else
         delete out;
 
-#if defined CUDD
+#if defined(CUDD)
       Cudd_RecursiveDerefZdd(ddman, intersec);
 #endif
 
@@ -103,7 +109,7 @@ void FormalConcept::process( ) {
 
     cnt += size;
 
-#if defined CUDD
+#if defined(CUDD)
     Cudd_RecursiveDerefZdd(ddman, tmp1);
 #endif
   }
@@ -119,27 +125,27 @@ unsigned int FormalConcept::getLength( ) {
   return concepts->length( );
 }
 
-#if defined BuDDy
+#if defined(BuDDy)
 Concept *FormalConcept::createConcept(const bdd &base) {
-#elif defined CUDD
+#elif defined(CUDD)
 Concept *FormalConcept::createConcept(DdNode *base) {
 #endif
   int i;
 
   Concept *cpt = NULL;
 
-#if defined BuDDy
+#if defined(BuDDy)
   if (base == bddfalse)
-#elif defined CUDD
+#elif defined(CUDD)
   if (base == zddfalse)
 #endif
 	  cpt = new Concept(attr, true);
   else {
     cpt = new Concept(attr);
     for (i = 0; i < attr; i++) {
-#if defined BuDDy
+#if defined(BuDDy)
        bdd tmp = base & bdd_ithvar(i);
-#elif defined CUDD
+#elif defined(CUDD)
        DdNode *var = Cudd_zddIthVar(ddman, i);
        Cudd_Ref(var);
 
@@ -150,7 +156,7 @@ Concept *FormalConcept::createConcept(DdNode *base) {
        if (tmp == base)
          cpt->setAttribute(i);
 
-#if defined CUDD
+#if defined(CUDD)
        Cudd_RecursiveDerefZdd(ddman, var);
        Cudd_RecursiveDerefZdd(ddman, tmp);
 #endif
@@ -160,24 +166,24 @@ Concept *FormalConcept::createConcept(DdNode *base) {
   return cpt;
 }
 
-#if defined BuDDy
+#if defined(BuDDy)
 bdd FormalConcept::assemblyBDD(Concept *cpt) {
-#elif defined CUDD
+#elif defined(CUDD)
 DdNode *FormalConcept::assemblyBDD(Concept *cpt) {
 #endif
   int i;
 
-#if defined BuDDy
+#if defined(BuDDy)
   bdd ret = context->extractBDD( );
-#elif defined CUDD
+#elif defined(CUDD)
   DdNode *ret = context->extractBDD( );
 #endif
 
   for (i = 0; i < attr; i++) {
     if (cpt->hasAttribute(i)) {
-#if defined BuDDy
+#if defined(BuDDy)
       ret &= bdd_ithvar(i);
-#elif defined CUDD
+#elif defined(CUDD)
       DdNode *var = Cudd_zddIthVar(ddman, i);
       Cudd_Ref(var);
 

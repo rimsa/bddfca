@@ -6,10 +6,12 @@
 #include <formal/concepts/Concept.h>
 #include <formal/concepts/ConceptsKeeper.h>
 
-#if defined BuDDy
+#if defined(BuDDy)
   #include <bdd.h>
-#elif defined CUDD
+#elif defined(CUDD)
   #include <cudd.h>
+#else
+  #error "Invalid BDD Library"
 #endif
 
 class FormalConcept {
@@ -18,10 +20,10 @@ class FormalConcept {
     FormalContext *context;
     ConceptsKeeper *concepts;
 
-#if defined BuDDy
+#if defined(BuDDy)
     Concept *createConcept(const bdd &base);
     bdd assemblyBDD(Concept *cpt);
-#else defined CUDD
+#elif defined(CUDD)
     DdManager *ddman;
     DdNode *zddtrue;
     DdNode *zddfalse;

@@ -22,9 +22,10 @@ ifeq ($(BDD), BuDDy)
   CXXFLAGS+=-DBuDDy
   LDFLAGS=-lbdd
 else ifeq ($(BDD), CUDD)
-  CFLAGS+=-DCUDD
-  CXXFLAGS+=-DCUDD
-  LDFLAGS=-L/usr/local/lib -lcudd -lepd -lmtr -lutil -lst -lm
+  CUDD_PATH=/opt/cudd-2.5.1
+  CFLAGS+=-DCUDD -I$(CUDD_PATH)/include
+  CXXFLAGS+=-DCUDD -I$(CUDD_PATH)/include
+  LDFLAGS=-L$(CUDD_PATH)/lib -lcudd -lepd -lmtr -lutil -lst -lm
 else
   $(error BDD library is not set. Please choose between BuDDy and CUDD)
 endif

@@ -6,7 +6,7 @@
 #include <control/Args.h>
 #include <util/Object.h>
 
-#if defined BuDDy
+#if defined(BuDDy)
     // each node on the BuDDy algorithm uses 20 bytes
     #define NODE_SIZE 20
  
@@ -20,7 +20,7 @@
     #define DEFAULT_CACHE_SIZE    10 MB / NODE_SIZE
     #define MAX_INCREASE           5 MB / NODE_SIZE
     #define CACHE_RATIO           64
-#elif defined CUDD
+#elif defined(CUDD)
   #include <cuddInt.h>
 #endif
 
@@ -29,7 +29,7 @@ FormalContext::FormalContext(int attributes) {
   this->objects = 0;
   this->filled = 0;
 
-#if defined BuDDy
+#if defined(BuDDy)
   bdd_init(MAX_NODE_NUM, DEFAULT_CACHE_SIZE);
   bdd_setcacheratio(CACHE_RATIO);
   bdd_setmaxincrease(MAX_INCREASE);
@@ -37,7 +37,7 @@ FormalContext::FormalContext(int attributes) {
   bdd_setvarnum(attributes);
 
   this->context = bddfalse;
-#elif defined CUDD
+#elif defined(CUDD)
   ddman = Cudd_Init(0, attributes, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0);
 
   cuddGarbageCollect(ddman, 1);
@@ -50,25 +50,49 @@ FormalContext::FormalContext(int attributes) {
 
   context = zddfalse;
   Cudd_Ref(context);
+
+  // Keep track of the same variables in ZDD and BDD.
+//  Cudd_AutodynDisable(ddman);
+//  Cudd_AutodynDisableZdd(ddman);
+//  Cudd_bddRealignEnable(ddman);
+//  Cudd_zddRealignEnable(ddman);
+
 #endif
 }
 
 FormalContext::~FormalContext( ) {
-#if defined BuDDy
+#if defined(BuDDy)
   bdd_done( );
-#elif defined CUDD
-  Cudd_RecursiveDerefZdd(ddman, zddtrue);
-  Cudd_RecursiveDerefZdd(ddman, zddfalse);
+#elif defined(CUDD)
+  printf("----- WITH ZDD ------\n");
+  cuddGarbageCollect(ddman, 0);
+  Cudd_PrintInfo(ddman, stdout);
 
-  Cudd_RecursiveDerefZdd(ddman, context);
-  context = NULL;
+  printf("----- WITH BDD ------\n");
+  Cudd_zddVarsFromBddVars(ddman, 1);
+  DdNode* xxx = Cudd_zddPortToBdd(ddman, this->context);
+  Cudd_Ref(xxx);
+
+  Cudd_RecursiveDerefZdd(ddman, this->context);
+  this->context = NULL;
+
+  cuddGarbageCollect(ddman, 0);
+  Cudd_PrintInfo(ddman, stdout);
+
+  Cudd_RecursiveDeref(ddman, xxx);
+
+//  Cudd_RecursiveDerefZdd(ddman, zddtrue);
+//  Cudd_RecursiveDerefZdd(ddman, zddfalse);
+
+//  Cudd_RecursiveDerefZdd(ddman, context);
+//  context = NULL;
 
   Cudd_Quit(ddman);
 #endif
 }
 
 void FormalContext::addObject(Object &obj) {
-#if defined BuDDy
+#if defined(BuDDy)
   int i;
 
   bdd tmp = bddtrue;
@@ -84,7 +108,7 @@ void FormalContext::addObject(Object &obj) {
   filled += obj.filled( );
 
   objects++;
-#elif defined CUDD
+#elif defined(CUDD)
   int i;
   DdNode *zddObj = NULL, *var, *tmp, *tmp2;
 
@@ -166,11 +190,11 @@ void FormalContext::process(BurMeister *in) {
   }
 }
 
-#if defined BuDDy
+#if defined(BuDDy)
 bdd FormalContext::extractAttribute(int idx) {
   return (context & bdd_ithvar(idx));
 }
-#elif defined CUDD
+#elif defined(CUDD)
 DdNode *FormalContext::extractAttribute(int idx) {
   DdNode *var = Cudd_zddIthVar(ddman, idx);
   Cudd_Ref(var);
@@ -184,18 +208,18 @@ DdNode *FormalContext::extractAttribute(int idx) {
 }
 #endif
 
-#if defined BuDDy
+#if defined(BuDDy)
 bdd &FormalContext::extractBDD( ) {
   return context;
 }
-#elif defined CUDD
+#elif defined(CUDD)
 DdNode *FormalContext::extractBDD( ) {
   Cudd_Ref(context);
   return context;
 }
 #endif
 
-#if defined CUDD
+#if defined(CUDD)
 DdManager *FormalContext::getDdManager( ) {
   return ddman;
 }
@@ -214,9 +238,9 @@ float FormalContext::getDensity( ) {
 }
 
 int FormalContext::getSize( ) {
-#if defined BuDDy
+#if defined(BuDDy)
   return (NODE_SIZE * bdd_nodecount(context));
-#elif defined CUDD
+#elif defined(CUDD)
   return Cudd_ReadMemoryInUse(ddman);
 #endif
 }
